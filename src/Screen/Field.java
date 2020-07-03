@@ -60,7 +60,10 @@ public class Field extends JFrame {
 	private ImageIcon rocket2 = getScaledImage("files/Screen/" + StartApp.player2 + "/rocket.png");
 	private ImageIcon hq2 = getScaledImage("files/Screen/" + StartApp.player2 + "/hq.png");
 
+	//online
 	private static String currentMap;
+	// server is located in google cloud
+	private static final String urlToServer = "https://strategyonline.rj.r.appspot.com/StrategyServer";
 
 	private ImageIcon getScaledImage(String dir) {
 		return new ImageIcon(new ImageIcon(dir).getImage().getScaledInstance((height - 100) / 18, (height - 140) / 18,
@@ -187,7 +190,7 @@ public class Field extends JFrame {
 	private String getMapFromServer() {
 		String line = "";
 		try {
-			URL url = new URL("http://localhost:8080/StrategyOnlineServer/StrategyServer");
+			URL url = new URL(urlToServer);
 			BufferedReader br = new BufferedReader(new InputStreamReader(url.openConnection().getInputStream()));
 			line = br.readLine();
 		} catch (Exception e) {
@@ -202,7 +205,7 @@ public class Field extends JFrame {
 						rocket2, hq2)
 				: "none";
 		try {
-			URL url = new URL("http://localhost:8080/StrategyOnlineServer/StrategyServer?map=" + currentMap);
+			URL url = new URL(urlToServer+"?map=" + currentMap);
 			BufferedReader br = new BufferedReader(new InputStreamReader(url.openConnection().getInputStream()));
 		} catch (Exception e) {
 			e.printStackTrace();
