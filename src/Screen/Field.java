@@ -491,6 +491,7 @@ public class Field extends JFrame {
 							labelCounter++;// counter of turns
 						}
 						sendMapToServer();
+						honorWinner(button[17][9], button[0][9]);// if somebody won						
 					}
 				};
 				button[i][j].addMouseListener(MoveFigure);
