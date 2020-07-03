@@ -6,6 +6,9 @@ import static Constants.Constants.MUSIC;
 
 import java.awt.FlowLayout;
 import java.io.File;
+import java.time.Duration;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
@@ -91,13 +94,15 @@ public final class StartApp extends JFrame {
 			music.start();
 		} catch (Exception e) {
 		}
-		/*
-		 * // timer to show agreement right after the video is played new
-		 * Timer().schedule(new TimerTask() {
-		 * 
-		 * @Override public void run() { new Instructions(); } },
-		 * Duration.ofSeconds(9).toMillis());
-		 */
+
+		// timer to show agreement right after the video is played
+		new Timer().schedule(new TimerTask() {
+			@Override
+			public void run() {
+				new Instructions();
+			}
+		}, Duration.ofSeconds(9).toMillis());
+
 		setVisible(true);// prevents loading
 	}
 }
