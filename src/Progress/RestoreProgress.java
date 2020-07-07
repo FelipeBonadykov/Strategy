@@ -8,6 +8,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 
 public final class RestoreProgress {
+	
 	public RestoreProgress(JButton button[][], ImageIcon soldier1, ImageIcon tank1, ImageIcon airplane1,
 			ImageIcon rocket1, ImageIcon hq1, ImageIcon soldier2, ImageIcon tank2, ImageIcon airplane2,
 			ImageIcon rocket2, ImageIcon hq2) {

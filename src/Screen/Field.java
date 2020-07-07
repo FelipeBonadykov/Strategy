@@ -2,6 +2,7 @@ package Screen;
 
 import static Constants.Constants.ICON;
 import static Constants.Constants.MAP;
+import static Constants.Constants.URL;
 import static Constants.Constants.WAR;
 
 import java.awt.Color;
@@ -60,10 +61,11 @@ public class Field extends JFrame {
 	private ImageIcon rocket2 = getScaledImage("files/Screen/" + StartApp.player2 + "/rocket.png");
 	private ImageIcon hq2 = getScaledImage("files/Screen/" + StartApp.player2 + "/hq.png");
 
-	//online
+	// online mode
 	private static String currentMap;
-	// server is located in google cloud
-	private static final String urlToServer = "https://strategyonline.rj.r.appspot.com/StrategyServer";
+	private static boolean firstOrSecond;// first is true, seconds is false
+	private static boolean isThreadOn = true;
+	private Thread constantUpdate;
 
 	private ImageIcon getScaledImage(String dir) {
 		return new ImageIcon(new ImageIcon(dir).getImage().getScaledInstance((height - 100) / 18, (height - 140) / 18,
@@ -88,9 +90,17 @@ public class Field extends JFrame {
 	}
 
 	private void honorWinner(JButton first, JButton second) {
-		// Displays the flag, symbol and the anthem of the country which won
-		if (first.getIcon() != hq1) {
-			switch (StartApp.player2) {
+		String toSwitch = "null";
+		if (first.getIcon() != hq1)
+			toSwitch = StartApp.player2;
+		else if (second.getIcon() != hq2)
+			toSwitch = StartApp.player1;
+	
+		if (!toSwitch.equals("null")) {
+			sendMapToServer("none");
+			isThreadOn = false;
+			// Displays the flag, symbol and the anthem of the country which won
+			switch (toSwitch) {
 			case "USA_army":
 				new Victory("THE UNITED STATES OF AMERICA WON", "USA");
 				break;
@@ -100,23 +110,10 @@ public class Field extends JFrame {
 			case "GB_army":
 				new Victory("THE GREAT BRITAIN WON", "GB");
 				break;
-			}
-			dispose();
-		}
-		if (second.getIcon() != hq2) {
-			switch (StartApp.player1) {
-			case "USA_army":
-				new Victory("THE UNITED STATES OF AMERICA WON", "USA");
-				break;
-			case "USSR_army":
-				new Victory("СОЮЗ СОВЕТСКИХ СОЦИАЛИСТИЧЕСКИХ РЕСПУБЛИК ПОБЕДИЛ", "USSR");
-				break;
-			case "GB_army":
-				new Victory("THE GREAT BRITAIN WON", "GB");
-				break;
-			}
-			dispose();
-		}
+			}			
+			// close battle field
+			dispose();	
+		}			
 	}
 
 	private void setDefaultPosition(JButton button[][]) {
@@ -190,7 +187,7 @@ public class Field extends JFrame {
 	private String getMapFromServer() {
 		String line = "";
 		try {
-			URL url = new URL(urlToServer);
+			URL url = new URL(URL.getDirection());
 			BufferedReader br = new BufferedReader(new InputStreamReader(url.openConnection().getInputStream()));
 			line = br.readLine();
 		} catch (Exception e) {
@@ -205,14 +202,15 @@ public class Field extends JFrame {
 						rocket2, hq2)
 				: "none";
 		try {
-			URL url = new URL(urlToServer+"?map=" + currentMap);
-			BufferedReader br = new BufferedReader(new InputStreamReader(url.openConnection().getInputStream()));
+			URL url = new URL(URL.getDirection() +"?map=" + currentMap);
+			new BufferedReader(new InputStreamReader(url.openConnection().getInputStream()));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
 	private void setButtons(String mode) {
+		// two players and pc modes
 		// button array and settings
 		for (byte i = 0; i < button.length; i++) {
 			for (byte j = 0; j < button.length; j++) {
@@ -470,28 +468,33 @@ public class Field extends JFrame {
 	}
 
 	private void setButtonsWWW() {
+		// online game code
 		for (byte i = 0; i < button.length; i++) {
 			for (byte j = 0; j < button.length; j++) {
 				// code to move figures
 				MouseAdapter MoveFigure = new MouseAdapter() {
 					@Override
 					public void mouseClicked(MouseEvent e) {
-
 						Object src = e.getSource();
 						JButton btn = (JButton) src;// source of button
+						
+						boolean notNullOrHQ = btn.getIcon() != null & btn.getIcon() != hq1 & btn.getIcon() != hq2;
+						boolean isFirst = btn.getIcon() == soldier1 | btn.getIcon() == tank1 | btn.getIcon() == airplane1
+								| btn.getIcon() == rocket1 | btn.getIcon() == hq1;
+						boolean isSecond = btn.getIcon() == soldier2 | btn.getIcon() == tank2 | btn.getIcon() == airplane2
+								| btn.getIcon() == rocket2 | btn.getIcon() == hq2;
+						boolean isMyFigure = firstOrSecond ? isFirst : isSecond;
 
-						if (e.getButton() == MouseEvent.BUTTON1) {
+						if (e.getButton() == MouseEvent.BUTTON1 & counter%2 == 0 & isMyFigure & notNullOrHQ) {
 							figure = (ImageIcon) btn.getIcon();// copying figure
 							btn.setIcon(null);// removing figure from the button
 							counter++;// counter of action
 						}
-						if (e.getButton() == MouseEvent.BUTTON3) {
-							btn.setIcon(figure);// pasting text from the string
+						if (e.getButton() == MouseEvent.BUTTON3 & counter%2 == 1 & !isMyFigure) {
+							btn.setIcon(figure);// pasting text from the string					
 							counter++;// counter of action
-							labelCounter++;// counter of turns
 						}
-						sendMapToServer();
-						honorWinner(button[17][9], button[0][9]);// if somebody won						
+						sendMapToServer();										
 					}
 				};
 				button[i][j].addMouseListener(MoveFigure);
@@ -499,18 +502,7 @@ public class Field extends JFrame {
 			}
 		}
 		// constant update of field
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				while (true) {
-					if (currentMap != getMapFromServer()) {
-						currentMap = getMapFromServer();
-						RestoreProgress.restore(button, soldier1, tank1, airplane1, rocket1, hq1, soldier2, tank2,
-								airplane2, rocket2, hq2, currentMap);
-					}
-				}
-			}
-		}).start();
+		constantUpdate.start();
 	}
 
 	public Field(String str) {
@@ -574,21 +566,37 @@ public class Field extends JFrame {
 			turnUP.setText("<html><font size=3 color=white>the " + StartApp.player1 + " versus the " + StartApp.player2
 					+ "</font><html>");
 			turnUP.setBackground(Color.black);
-
+			
 			setButtons("PC");
-
+			
 		} else if (str.equals("WWW")) {
 			turnUP.setPreferredSize(new Dimension(height - 30, 10));
 			turnUP.setText("ONLINE GAME");
 			turnUP.setBackground(Color.black);
 
 			if (getMapFromServer().equals("none")) {
+				firstOrSecond = true;
 				sendMapToServer();
-			}
-
-			setButtonsWWW();
-
-			// sets value on server to initial and exits the game
+			} else 
+				firstOrSecond = false;	
+			
+			constantUpdate = new Thread(new Runnable() {
+				@Override
+				public void run() {
+					while (isThreadOn) {
+						honorWinner(button[17][9], button[0][9]);// if somebody won	
+						if (currentMap != getMapFromServer()) {
+							currentMap = getMapFromServer();
+							RestoreProgress.restore(button, soldier1, tank1, airplane1, rocket1, hq1, soldier2, tank2,
+								airplane2, rocket2, hq2, currentMap);
+						}
+					}
+				}
+			});
+			
+			setButtonsWWW();	
+			
+			// sets value on server to "none" and exits the game
 			addWindowListener(new WindowAdapter() {
 				@Override
 				public void windowClosing(WindowEvent e) {
@@ -597,7 +605,6 @@ public class Field extends JFrame {
 				}
 			});
 		}
-
 		setVisible(true);// prevents long loading
 	}
 }
