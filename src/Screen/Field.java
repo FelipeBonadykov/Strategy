@@ -120,7 +120,7 @@ public class Field extends JFrame {
 		for (byte i = 0; i < button.length; i++)
 			for (byte j = 0; j < button.length; j++) {
 				button[i][j] = new JButton();
-				button[i][j].setPreferredSize(new Dimension((height - 100) / 18, (height - 140) / 18));
+				button[i][j].setPreferredSize(new Dimension((int) ((0.85 * height) / 18), (int) ((0.80 * height) / 18)));
 				button[i][j].setBackground(new Color(0.4f, 0.5f, 0.4f));
 				button[i][j].setVisible(true);
 				paintButtons(i, j);
@@ -511,7 +511,7 @@ public class Field extends JFrame {
 		setIconImage(new ImageIcon(ICON.getDirection()).getImage());
 		setLocation(150, 10);
 		setSize(height, height);
-		setResizable(false);
+		//setResizable(false);
 
 		// wall paper map
 		setContentPane(new JLabel(new ImageIcon(MAP.getDirection())));
@@ -527,14 +527,14 @@ public class Field extends JFrame {
 
 		if (str.equals("2P")) {
 			turnUP.setText("    Turn of the 1st player");
-			turnUP.setPreferredSize(new Dimension(height - 70, 10));
+			turnUP.setPreferredSize(new Dimension((int)(0.9 * height), (int) (0.02* height)));
 			turnUP.setBackground(Color.cyan);
 
 			// restore the progress
 			JButton restore = new JButton();
 			restore.setForeground(Color.BLACK);
 			restore.setBackground(Color.red);
-			restore.setSize(40, 10);
+			restore.setSize((int)(0.2 * height), (int) (0.02* height));
 			add(restore);
 
 			setButtons("2P");
@@ -562,7 +562,7 @@ public class Field extends JFrame {
 		} else if (str.equals("PC")) {
 			setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-			turnUP.setPreferredSize(new Dimension(height - 30, 10));
+			turnUP.setPreferredSize(new Dimension( (int) (0.97 * height), (int) (0.02* height)));
 			turnUP.setText("<html><font size=3 color=white>the " + StartApp.player1 + " versus the " + StartApp.player2
 					+ "</font><html>");
 			turnUP.setBackground(Color.black);
@@ -570,9 +570,9 @@ public class Field extends JFrame {
 			setButtons("PC");
 			
 		} else if (str.equals("WWW")) {
-			turnUP.setPreferredSize(new Dimension(height - 30, 10));
+			turnUP.setPreferredSize(new Dimension((int) (0.97 * height), (int) (0.02* height)));
 			turnUP.setText("ONLINE GAME");
-			turnUP.setBackground(Color.black);
+			turnUP.setBackground(Color.LIGHT_GRAY);
 
 			if (getMapFromServer().equals("none")) {
 				firstOrSecond = true;
