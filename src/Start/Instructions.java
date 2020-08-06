@@ -16,7 +16,7 @@ import Web.WebConnector;
 
 @SuppressWarnings("serial")
 final class Instructions extends JFrame {
-	private final Font FONT = new Font("Arial", Font.BOLD, 14);
+	private final Font FONT = new Font("Arial", Font.BOLD, 13);
 	private final String AGREEMENT_AND_INSTRUCTIONS =
 	"<html><font face=Monospaced size=6 color=red> PLEASE PAY ATTENTION</font><br>"//beginning
 			+ "<br> AGREEMENT <br>"
@@ -30,11 +30,9 @@ final class Instructions extends JFrame {
 			
 			+ "<br> INSTRUCTIONS <br>"//instructions
 			+ "Soldiers (🕴) can move to any adjacent square <br>"//pawn
-			+ "Mechanized infantry (🚙) move is shaped as <br>"
-			+ "an “L” and 2 squares verstically and horizontally <br>"//knight
+			+ "Mechanized infantry (🚙) move is shaped as an “L” and 2 squares verstically and horizontally <br>"//knight
 			+ "Air forces (🛧) can move up to 3 squares in a straight line in any direction <br>"//Queen
-			+ "Missile forces (🚀) move in a straight line either <br>"
-			+ "horizontally or vertically up to 4 squares <br>"//Rook
+			+ "Missile forces (🚀) move in a straight line either horizontally or vertically up to 4 squares <br>"//Rook
 			+ "Head Quarter (☭ or 🦅) shouldn't move <br>"
 			+ "The goal of the game is to checkmate the other HQ <br><br>"//the object of the game
 			+ "In online mode you can place figures as you want <br>"
