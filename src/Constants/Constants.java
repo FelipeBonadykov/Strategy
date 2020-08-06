@@ -7,6 +7,7 @@ public enum Constants {
 	WAR("files/Screen/sound.wav"),
 	PROGRESS("files/Progress/progress.fb"),
 	URL("https://strategyonline.rj.r.appspot.com/strategy");
+	//URL("http://localhost:8080/strategy"); // uncomment if you test locally
 	
 	private String direction;
 	Constants(String direction)

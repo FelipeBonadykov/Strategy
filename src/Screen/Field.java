@@ -2,7 +2,6 @@ package Screen;
 
 import static Constants.Constants.ICON;
 import static Constants.Constants.MAP;
-import static Constants.Constants.URL;
 import static Constants.Constants.WAR;
 
 import java.awt.Color;
@@ -14,10 +13,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.InputStreamReader;
-import java.net.URL;
 
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
@@ -28,12 +24,15 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.WindowConstants;
 
+import org.json.simple.JSONObject;
+
 import GameEngine.GameEngine;
 import Progress.DoNotSaveProgress;
 import Progress.RestoreProgress;
 import Progress.SaveProgress;
 import Result.Victory;
 import Start.StartApp;
+import Web.WebConnector;
 
 @SuppressWarnings("serial")
 public class Field extends JFrame {
@@ -45,21 +44,24 @@ public class Field extends JFrame {
 	private Color spec = new Color(0.4f, 0.4f, 0.6f);// to mark possible ways
 	private static final int height = Toolkit.getDefaultToolkit().getScreenSize().height - 70;
 	private int counterForEngine = 0;
+	private boolean shouldLimitMoves = false;
 
 	// figures
 	private ImageIcon figure;// this variable will be used to move figures
 
-	private ImageIcon soldier1 = getScaledImage("files/Screen/" + StartApp.player1 + "/soldier.png");
-	private ImageIcon tank1 = getScaledImage("files/Screen/" + StartApp.player1 + "/tank.png");
-	private ImageIcon airplane1 = getScaledImage("files/Screen/" + StartApp.player1 + "/airplane.png");
-	private ImageIcon rocket1 = getScaledImage("files/Screen/" + StartApp.player1 + "/rocket.png");
-	private ImageIcon hq1 = getScaledImage("files/Screen/" + StartApp.player1 + "/hq.png");
+	private ImageIcon 
+	        soldier1 = getScaledImage("files/Screen/" + StartApp.player1 + "/soldier.png"),
+			tank1 = getScaledImage("files/Screen/" + StartApp.player1 + "/tank.png"),
+			airplane1 = getScaledImage("files/Screen/" + StartApp.player1 + "/airplane.png"),
+			rocket1 = getScaledImage("files/Screen/" + StartApp.player1 + "/rocket.png"),
+			hq1 = getScaledImage("files/Screen/" + StartApp.player1 + "/hq.png");
 
-	private ImageIcon soldier2 = getScaledImage("files/Screen/" + StartApp.player2 + "/soldier.png");
-	private ImageIcon tank2 = getScaledImage("files/Screen/" + StartApp.player2 + "/tank.png");
-	private ImageIcon airplane2 = getScaledImage("files/Screen/" + StartApp.player2 + "/airplane.png");
-	private ImageIcon rocket2 = getScaledImage("files/Screen/" + StartApp.player2 + "/rocket.png");
-	private ImageIcon hq2 = getScaledImage("files/Screen/" + StartApp.player2 + "/hq.png");
+	private ImageIcon 
+	        soldier2 = getScaledImage("files/Screen/" + StartApp.player2 + "/soldier.png"),
+			tank2 = getScaledImage("files/Screen/" + StartApp.player2 + "/tank.png"),
+			airplane2 = getScaledImage("files/Screen/" + StartApp.player2 + "/airplane.png"),
+			rocket2 = getScaledImage("files/Screen/" + StartApp.player2 + "/rocket.png"),
+			hq2 = getScaledImage("files/Screen/" + StartApp.player2 + "/hq.png");
 
 	// online mode
 	private static String currentMap;
@@ -97,7 +99,8 @@ public class Field extends JFrame {
 			toSwitch = StartApp.player1;
 	
 		if (!toSwitch.equals("null")) {
-			sendMapToServer("none");
+			WebConnector.resetServer();
+			// kill update thread
 			isThreadOn = false;
 			// Displays the flag, symbol and the anthem of the country which won
 			switch (toSwitch) {
@@ -185,28 +188,17 @@ public class Field extends JFrame {
 	}
 
 	private String getMapFromServer() {
-		String line = "";
-		try {
-			URL url = new URL(URL.getDirection());
-			BufferedReader br = new BufferedReader(new InputStreamReader(url.openConnection().getInputStream()));
-			line = br.readLine();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return line;
+		JSONObject jsonObject = WebConnector.getInfoFromServer();
+        return (String) jsonObject.get("map");
 	}
 
-	private void sendMapToServer(String... param) {
-		currentMap = param.length == 0
-				? SaveProgress.getPosition(button, soldier1, tank1, airplane1, rocket1, hq1, soldier2, tank2, airplane2,
-						rocket2, hq2)
-				: "none";
-		try {
-			URL url = new URL(URL.getDirection() +"?map=" + currentMap);
-			new BufferedReader(new InputStreamReader(url.openConnection().getInputStream()));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	
+	
+	private void sendMapToServer() {
+		currentMap = SaveProgress.getPosition
+				(button, soldier1, tank1, airplane1, rocket1, hq1, 
+						soldier2, tank2, airplane2,	rocket2, hq2);
+		WebConnector.sendInfoToServer("map", currentMap);
 	}
 
 	private void setButtons(String mode) {
@@ -488,11 +480,186 @@ public class Field extends JFrame {
 						if (e.getButton() == MouseEvent.BUTTON1 & counter%2 == 0 & isMyFigure & notNullOrHQ) {
 							figure = (ImageIcon) btn.getIcon();// copying figure
 							btn.setIcon(null);// removing figure from the button
-							counter++;// counter of action
+							counter++;// counter of action							
+							if (shouldLimitMoves) {
+								class limit_movings {
+									public limit_movings() {
+										for (int i = 0; i < 18; i++)
+											for (int j = 0; j < 18; j++)
+												if (btn == button[i][j]) {
+													if (figure == rocket1 | figure == rocket2) {// rocket. moves +
+														for (int k = -4; k < 5; k++) {
+															if (j + k < 0) {
+															} else if (j + k > 17) {
+															} else {
+																button[i][j + k].setBackground(spec);
+																button[i][j + k].setOpaque(true);
+															}
+														}
+														for (int k = -4; k < 5; k++) {
+															if (i + k < 0) {
+															} else if (i + k > 17) {
+															} else {
+																button[i + k][j].setBackground(spec);
+																button[i + k][j].setOpaque(true);
+															}
+														}
+														button[i][j].setBackground(Color.BLACK);
+														button[i][j].setOpaque(true);
+													} else if (figure == airplane1 | figure == airplane2) {// airplane. moves
+																						// *
+														for (int k = -3; k < 4; k++) {
+															if (j + k < 0) {
+															} else if (j + k > 17) {
+															} else {
+																button[i][j + k].setBackground(spec);
+																button[i][j + k].setOpaque(true);
+															}
+														}
+														for (int k = -3; k < 4; k++) {
+															if (i + k < 0) {
+															} else if (i + k > 17) {
+															} else {
+																button[i + k][j].setBackground(spec);
+																button[i + k][j].setOpaque(true);
+															}
+														}
+														for (int k = -3; k < 4; k++) {
+															if (i + k < 0 | j + k < 0 | i + k > 17
+																	| j + k > 17) {
+															} else {
+																button[i + k][j + k].setBackground(spec);
+																button[i + k][j + k].setOpaque(true);
+															}
+														}
+														for (int k = -3; k < 4; k++) {
+															if (i - k < 0 | j + k < 0 | i - k > 17
+																	| j + k > 17) {
+															} else {
+																button[i - k][j + k].setBackground(spec);
+																button[i - k][j + k].setOpaque(true);
+															}
+														}
+														button[i][j].setBackground(Color.BLACK);
+														button[i][j].setOpaque(true);
+													} else if (figure == tank1) {// tank. moves L
+														if (j - 2 > 17 | j - 2 < 0) {
+														} else {
+															button[i][j - 2].setBackground(spec);
+															button[i][j - 2].setOpaque(true);
+														}
+														if (j + 2 > 17 | j + 2 < 0) {
+														} else {
+															button[i][j + 2].setBackground(spec);
+															button[i][j + 2].setOpaque(true);
+														}
+														if (i + 2 > 17 | i + 2 < 0) {
+														} else {
+															button[i + 2][j].setBackground(spec);
+															button[i + 2][j].setOpaque(true);
+														}
+														if (i - 2 > 17 | i - 2 < 0) {
+														} else {
+															button[i - 2][j].setBackground(spec);
+															button[i - 2][j].setOpaque(true);
+														}
+														if (i + 2 > 17 | i + 2 < 0 | j - 1 > 17 | j - 1 < 0) {
+														} else {
+															button[i + 2][j - 1].setBackground(spec);
+															button[i + 2][j - 1].setOpaque(true);
+														}
+														if (i + 2 > 17 | i + 2 < 0 | j + 1 > 17 | j + 1 < 0) {
+														} else {
+															button[i + 2][j + 1].setBackground(spec);
+															button[i + 2][j + 1].setOpaque(true);
+														}
+														if (i - 2 > 17 | i - 2 < 0 | j - 1 > 17 | j - 1 < 0) {
+														} else {
+															button[i - 2][j - 1].setBackground(spec);
+															button[i - 2][j - 1].setOpaque(true);
+														}
+														if (i - 2 > 17 | i - 2 < 0 | j + 1 > 17 | j + 1 < 0) {
+														} else {
+															button[i - 2][j + 1].setBackground(spec);
+															button[i - 2][j + 1].setOpaque(true);
+														}
+														if (i + 1 > 17 | i + 1 < 0 | j + 2 > 17 | j + 2 < 0) {
+														} else {
+															button[i + 1][j + 2].setBackground(spec);
+															button[i + 1][j + 2].setOpaque(true);
+														}
+														if (i + 1 > 17 | i + 1 < 0 | j - 2 > 17 | j - 2 < 0) {
+														} else {
+															button[i + 1][j - 2].setBackground(spec);
+															button[i + 1][j - 2].setOpaque(true);
+														}
+														if (i - 1 > 17 | i - 1 < 0 | j + 2 > 17 | j + 2 < 0) {
+														} else {
+															button[i - 1][j + 2].setBackground(spec);
+															button[i - 1][j + 2].setOpaque(true);
+														}
+														if (i - 1 > 17 | i - 1 < 0 | j - 2 > 17 | j - 2 < 0) {
+														} else {
+															button[i - 1][j - 2].setBackground(spec);
+															button[i - 1][j - 2].setOpaque(true);
+														}
+														button[i][j].setBackground(Color.BLACK);
+														button[i][j].setOpaque(true);
+													} else if (figure == soldier1 | figure == soldier2) {// soldier. moves *
+														for (int k = -1; k < 2; k++) {
+															if (j + k < 0)
+																k++;
+															else if (j + k > 17) {
+															} else {
+																button[i][j + k].setBackground(spec);
+																button[i][j + k].setOpaque(true);
+															}
+														}
+														for (int k = -1; k < 2; k++) {
+															if (i + k < 0 | i + k > 17) {
+															} else {
+																button[i + k][j].setBackground(spec);
+																button[i + k][j].setOpaque(true);
+															}
+														}
+														for (int k = -1; k < 2; k++) {
+															if (i + k < 0 | j + k < 0 | i + k > 17
+																	| j + k > 17) {
+															} else {
+																button[i + k][j + k].setBackground(spec);
+																button[i + k][j + k].setOpaque(true);
+															}
+														}
+														for (int k = -1; k < 2; k++) {
+															if (i - k < 0 | j + k < 0 | i - k > 17
+																	| j + k > 17) {
+															} else {
+																button[i - k][j + k].setBackground(spec);
+																button[i - k][j + k].setOpaque(true);
+															}
+														}
+														button[i][j].setBackground(Color.BLACK);
+														button[i][j].setOpaque(true);
+													}
+												}
+									}
+								}
+								new limit_movings();
+							}							
 						}
 						if (e.getButton() == MouseEvent.BUTTON3 & counter%2 == 1 & !isMyFigure) {
 							btn.setIcon(figure);// pasting text from the string					
 							counter++;// counter of action
+							if (shouldLimitMoves) {
+								class paint_buttons {// inner class to repaint buttons back
+									public paint_buttons(JButton button[][]) {// squares painting
+										for (int i = 0; i < 18; i++)
+											for (int j = 0; j < 18; j++)
+												paintButtons(i, j);
+									}
+								}
+								new paint_buttons(button);
+							}							
 						}
 						sendMapToServer();										
 					}
@@ -511,7 +678,6 @@ public class Field extends JFrame {
 		setIconImage(new ImageIcon(ICON.getDirection()).getImage());
 		setLocation(150, 10);
 		setSize(height, height);
-		//setResizable(false);
 
 		// wall paper map
 		setContentPane(new JLabel(new ImageIcon(MAP.getDirection())));
@@ -570,9 +736,16 @@ public class Field extends JFrame {
 			setButtons("PC");
 			
 		} else if (str.equals("WWW")) {
-			turnUP.setPreferredSize(new Dimension((int) (0.97 * height), (int) (0.02* height)));
+			turnUP.setPreferredSize(new Dimension((int)(0.9 * height), (int) (0.02* height)));
 			turnUP.setText("ONLINE GAME");
 			turnUP.setBackground(Color.LIGHT_GRAY);
+			
+			// limit moves after player placed figures by his wish
+			JButton limitMoves = new JButton();
+			limitMoves.setForeground(Color.BLACK);
+			limitMoves.setBackground(Color.red);
+			limitMoves.setSize((int)(0.2 * height), (int) (0.02* height));
+			add(limitMoves);
 
 			if (getMapFromServer().equals("none")) {
 				firstOrSecond = true;
@@ -592,18 +765,18 @@ public class Field extends JFrame {
 						}
 					}
 				}
-			});
-			
-			setButtonsWWW();	
-			
+			});			
+			setButtonsWWW();			
 			// sets value on server to "none" and exits the game
 			addWindowListener(new WindowAdapter() {
 				@Override
 				public void windowClosing(WindowEvent e) {
-					sendMapToServer("none");
+					WebConnector.resetServer();
 					System.exit(0);
 				}
 			});
+			// after a player has set all figures as (s)he wishes, (s)he limits the moves to avoid cheating
+			limitMoves.addActionListener(LimitMoves -> shouldLimitMoves = true);
 		}
 		setVisible(true);// prevents long loading
 	}

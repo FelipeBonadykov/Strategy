@@ -1,6 +1,6 @@
 @ProjectInformation
 (authorsName = "Philipp Bonadykov", 
-lastModified = "July 2, 2018", 
+lastModified = "August 4, 2020", 
 programVersion = 4.0, 
 reviewers = {
 		"Daniel Porokhnya", "Leo Lyapunov",

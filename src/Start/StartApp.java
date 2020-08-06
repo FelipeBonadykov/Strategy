@@ -3,7 +3,10 @@ package Start;
 import static Constants.Constants.ICON;
 import static Constants.Constants.MOVIE;
 import static Constants.Constants.MUSIC;
+import static Web.WebConnector.getInfoFromServer;
+import static Web.WebConnector.sendInfoToServer;
 
+import java.awt.Color;
 import java.awt.FlowLayout;
 import java.io.File;
 import java.time.Duration;
@@ -41,18 +44,22 @@ public final class StartApp extends JFrame {
 
 		final String[] items = { "USSR", "USA", "GB" }; // pick sides
 
-		// first player
+		JLabel clarification = new JLabel("<html> Choose sides for first and second player and mode. <br> In online mode side of opponent will be set automatically </html>");
+		clarification.setForeground(Color.yellow);
+		add(clarification);
+		
 		JComboBox<String> firstPlayer = new JComboBox<>(items);
 		firstPlayer.setSelectedItem(null);
+		firstPlayer.getEditor().getEditorComponent().setBackground(Color.red);
 		firstPlayer.addItemListener(l -> {
 			JComboBox<?> box = (JComboBox) l.getSource();
 			player1 = (String) box.getSelectedItem() + "_army";
 		});
 		add(firstPlayer);
 
-		// second player
 		JComboBox<String> secondPlayer = new JComboBox<>(items);
 		secondPlayer.setSelectedItem(null);
+		secondPlayer.getEditor().getEditorComponent().setBackground(Color.red);
 		secondPlayer.addItemListener(l -> {
 			JComboBox<?> box = (JComboBox) l.getSource();
 			player2 = (String) box.getSelectedItem() + "_army";
@@ -62,6 +69,7 @@ public final class StartApp extends JFrame {
 		// choose mode
 		JComboBox<String> mode = new JComboBox<>(new String[] { "TWO PLAYERS", "SINGLE GAME", "ONLINE GAME" });
 		mode.setSelectedItem(null);
+		mode.getEditor().getEditorComponent().setBackground(Color.red);
 		mode.addItemListener(start -> {
 			try {
 				if (player1 != null & player2 != null & player1.equals(player2) == false) {
@@ -76,10 +84,19 @@ public final class StartApp extends JFrame {
 					case "SINGLE GAME":
 						option = "PC";
 						break;
-					case "ONLINE GAME":
+					case "ONLINE GAME":						
+						if (getInfoFromServer().get("first").equals("none") &
+								getInfoFromServer().get("second").equals("none")) {
+							sendInfoToServer("first", player1);
+							sendInfoToServer("second", player2);
+						} 
+						else {
+							player1 = (String) getInfoFromServer().get("first");
+							player2 = (String) getInfoFromServer().get("second");
+						}						
 						option = "WWW";
 						break;
-					}
+					}					
 					new Field(option);
 				}
 			} catch (Exception e) {
@@ -92,8 +109,7 @@ public final class StartApp extends JFrame {
 			music = AudioSystem.getClip();
 			music.open(AudioSystem.getAudioInputStream(new File(MUSIC.getDirection())));
 			music.start();
-		} catch (Exception e) {
-		}
+		} catch (Exception e) {}
 
 		// timer to show agreement right after the video is played
 		new Timer().schedule(new TimerTask() {
@@ -103,6 +119,6 @@ public final class StartApp extends JFrame {
 			}
 		}, Duration.ofSeconds(9).toMillis());
 
-		setVisible(true);// prevents loading
+		setVisible(true);
 	}
 }
