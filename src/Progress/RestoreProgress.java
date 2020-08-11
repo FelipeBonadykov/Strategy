@@ -4,14 +4,14 @@ import static Constants.Constants.PROGRESS;
 
 import java.io.FileReader;
 
-import javax.swing.ImageIcon;
+import javax.swing.Icon;
 import javax.swing.JButton;
 
 public final class RestoreProgress {
 	
-	public RestoreProgress(JButton button[][], ImageIcon soldier1, ImageIcon tank1, ImageIcon airplane1,
-			ImageIcon rocket1, ImageIcon hq1, ImageIcon soldier2, ImageIcon tank2, ImageIcon airplane2,
-			ImageIcon rocket2, ImageIcon hq2) {
+	public RestoreProgress(JButton button[][], Icon soldier1, Icon tank1, Icon airplane1,
+			Icon rocket1, Icon hq1, Icon soldier2, Icon tank2, Icon airplane2,
+			Icon rocket2, Icon hq2) {
 		try (FileReader progress = new FileReader(PROGRESS.getDirection())) {
 			String txt = "";// it will contain elements from file
 			int c;
@@ -24,9 +24,9 @@ public final class RestoreProgress {
 			/* file may not exist */}
 	}
 
-	public static void restore(JButton button[][], ImageIcon soldier1, ImageIcon tank1, ImageIcon airplane1,
-			ImageIcon rocket1, ImageIcon hq1, ImageIcon soldier2, ImageIcon tank2, ImageIcon airplane2,
-			ImageIcon rocket2, ImageIcon hq2, String txt) {
+	public static void restore(JButton button[][], Icon soldier1, Icon tank1, Icon airplane1,
+			Icon rocket1, Icon hq1, Icon soldier2, Icon tank2, Icon airplane2,
+			Icon rocket2, Icon hq2, String txt) {
 		try {
 			int index = 0;// index of array list
 			for (int i = 0; i < 18; i++) {

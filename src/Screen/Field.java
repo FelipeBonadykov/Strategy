@@ -17,6 +17,7 @@ import java.io.File;
 
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -36,27 +37,27 @@ import Web.WebConnector;
 
 @SuppressWarnings("serial")
 public class Field extends JFrame {
-	JButton button[][] = new JButton[18][18];// game field
+	private static JButton button[][] = new JButton[18][18];// game field
 	private JLabel turnUP;// this label in the top of the screen will show whose turn is
-	private int counter = 0;// avoid same actions (like take and take, put and put)
-	private int labelCounter = 0;// shows whose turn to play is
-	private Color deft = new Color(0.4f, 0.5f, 0.4f);// default color for field
-	private Color spec = new Color(0.4f, 0.4f, 0.6f);// to mark possible ways
+	private static int counter = 0;// to avoid same actions (like take and take, put and put)
+	private static int labelCounter = 0;// shows whose turn to play is
+	private static final Color deft = new Color(0.4f, 0.5f, 0.4f);// default color for field
+	private static final Color spec = new Color(0.4f, 0.4f, 0.6f);// to mark possible ways
 	private static final int height = Toolkit.getDefaultToolkit().getScreenSize().height - 70;
-	private int counterForEngine = 0;
-	private boolean shouldLimitMoves = false;
+	private static int counterForEngine = 0;
+	private static boolean shouldLimitMoves = false;
 
 	// figures
-	private ImageIcon figure;// this variable will be used to move figures
+	private static Icon figure;// this variable will be used to move figures
 
-	private ImageIcon 
+	private static Icon 
 	        soldier1 = getScaledImage("files/Screen/" + StartApp.player1 + "/soldier.png"),
 			tank1 = getScaledImage("files/Screen/" + StartApp.player1 + "/tank.png"),
 			airplane1 = getScaledImage("files/Screen/" + StartApp.player1 + "/airplane.png"),
 			rocket1 = getScaledImage("files/Screen/" + StartApp.player1 + "/rocket.png"),
 			hq1 = getScaledImage("files/Screen/" + StartApp.player1 + "/hq.png");
 
-	private ImageIcon 
+	private static Icon 
 	        soldier2 = getScaledImage("files/Screen/" + StartApp.player2 + "/soldier.png"),
 			tank2 = getScaledImage("files/Screen/" + StartApp.player2 + "/tank.png"),
 			airplane2 = getScaledImage("files/Screen/" + StartApp.player2 + "/airplane.png"),
@@ -64,18 +65,18 @@ public class Field extends JFrame {
 			hq2 = getScaledImage("files/Screen/" + StartApp.player2 + "/hq.png");
 
 	// online mode
-	private static String currentMap;
-	private static boolean firstOrSecond;// first is true, seconds is false
+	private static String currentMap = "none";// to avoid NullPointerException
+	private static boolean firstOrSecond;// first = true, second = false
 	private static boolean isThreadOn = true;
 	private Thread constantUpdate;
 
-	private ImageIcon getScaledImage(String dir) {
+	private static Icon getScaledImage(String dir) {
 		return new ImageIcon(new ImageIcon(dir).getImage().getScaledInstance((height - 100) / 18, (height - 140) / 18,
 				Image.SCALE_DEFAULT));
 	}
 
-	private void paintButtons(int i, int j) {
-		button[i][j].setBackground(deft);
+	private static void paintButtons(int i, int j) {
+		button[i][j].setBackground(deft);		
 		if (i % 2 == 0) {// M every second from 1
 			if (j % 2 == 0) {// L every second from 1
 				button[i][j].setOpaque(true);
@@ -119,12 +120,11 @@ public class Field extends JFrame {
 		}			
 	}
 
-	private void setDefaultPosition(JButton button[][]) {
+	private static void setDefaultPosition(JButton button[][]) {
 		for (byte i = 0; i < button.length; i++)
 			for (byte j = 0; j < button.length; j++) {
 				button[i][j] = new JButton();
 				button[i][j].setPreferredSize(new Dimension((int) ((0.85 * height) / 18), (int) ((0.80 * height) / 18)));
-				button[i][j].setBackground(new Color(0.4f, 0.5f, 0.4f));
 				button[i][j].setVisible(true);
 				paintButtons(i, j);
 			}
@@ -155,8 +155,6 @@ public class Field extends JFrame {
 		button[0][10].setIcon(rocket2);
 		// Head Quarter
 		button[0][9].setIcon(hq2);
-		button[0][9].setOpaque(true);
-		button[0][9].setBackground(new Color(200, 150, 150));
 		// USA
 		// Soldiers
 		for (byte k = 1; k < 16; k++) {
@@ -183,29 +181,41 @@ public class Field extends JFrame {
 		button[17][10].setIcon(rocket1);
 		// Head Quarter
 		button[17][9].setIcon(hq1);
-		button[17][9].setOpaque(true);
-		button[17][9].setBackground(new Color(200, 150, 150));
 	}
 
-	private String getMapFromServer() {
+	private static String getMapFromServer() {
 		JSONObject jsonObject = WebConnector.getInfoFromServer();
         return (String) jsonObject.get("map");
 	}
-
 	
-	
-	private void sendMapToServer() {
+	private static void sendMapToServer() {
 		currentMap = SaveProgress.getPosition
 				(button, soldier1, tank1, airplane1, rocket1, hq1, 
 						soldier2, tank2, airplane2,	rocket2, hq2);
-		WebConnector.sendInfoToServer("map", currentMap);
+		if (firstOrSecond) 
+			WebConnector.sendInfoToServer("map", currentMap);			
+		 else 
+			// rotate the field
+			WebConnector.sendInfoToServer("map", new StringBuilder(currentMap).reverse().toString());
 	}
 
+	private static boolean canGo() {
+		String turnOf = (String) WebConnector.getInfoFromServer().get("turn");
+		// first player allowed to go
+		if (firstOrSecond & turnOf.equals("first")) 
+			return true;
+		// second player allowed to go
+		if (!firstOrSecond & turnOf.equals("second"))
+			return true;
+		// in any other case return false
+		return false;
+	}
+	
 	private void setButtons(String mode) {
 		// two players and pc modes
 		// button array and settings
 		for (byte i = 0; i < button.length; i++) {
-			for (byte j = 0; j < button.length; j++) {
+			for (byte j = 0; j < button[i].length; j++) {
 				// code to move figures
 				MouseAdapter MoveFigure = new MouseAdapter() {
 					@Override
@@ -222,9 +232,11 @@ public class Field extends JFrame {
 						if ((counter % 2 == 0 & e.getButton() == MouseEvent.BUTTON1) & notNullorHQ) {
 							// first action. left button click. take figure, its neither null nor HQ
 							if (labelCounter % 2 == 1 & is1) {
-								/* to avoid blue going during red's turn */} else {
+								// to avoid blue going during red's turn 
+								} else {
 								if (labelCounter % 2 == 0 & is2) {
-									/* we avoid red going during blue's turn */} else {
+									// we avoid red going during blue's turn 
+									} else {
 									figure = (ImageIcon) btn.getIcon();// copying figure
 									btn.setIcon(null);// removing figure from the button
 									counter++;// counter of action
@@ -416,9 +428,11 @@ public class Field extends JFrame {
 								}
 							} else if (counter % 2 == 1 & e.getButton() == MouseEvent.BUTTON3) {
 								if (labelCounter % 2 == 0 & is1) {
-									/* we avoid blue fighting blue */} else {
+									// we avoid blue fighting blue 
+									} else {
 									if (labelCounter % 2 == 1 & is2) {
-										/* we avoid red fighting red */} else {// if everything goes okay
+										// we avoid red fighting red
+									} else {// if everything goes okay
 										if (is1 | is2) {
 											try {
 												Clip music = AudioSystem.getClip();
@@ -460,15 +474,12 @@ public class Field extends JFrame {
 	}
 
 	private void setButtonsWWW() {
-		// online game code
 		for (byte i = 0; i < button.length; i++) {
-			for (byte j = 0; j < button.length; j++) {
-				// code to move figures
-				MouseAdapter MoveFigure = new MouseAdapter() {
+			for (byte j = 0; j < button[i].length; j++) {
+				MouseAdapter moveFigure = new MouseAdapter() {
 					@Override
-					public void mouseClicked(MouseEvent e) {
-						Object src = e.getSource();
-						JButton btn = (JButton) src;// source of button
+					public void mousePressed(MouseEvent e) {
+						JButton btn = (JButton) e.getSource();// source of button
 						
 						boolean notNullOrHQ = btn.getIcon() != null & btn.getIcon() != hq1 & btn.getIcon() != hq2;
 						boolean isFirst = btn.getIcon() == soldier1 | btn.getIcon() == tank1 | btn.getIcon() == airplane1
@@ -477,10 +488,10 @@ public class Field extends JFrame {
 								| btn.getIcon() == rocket2 | btn.getIcon() == hq2;
 						boolean isMyFigure = firstOrSecond ? isFirst : isSecond;
 
-						if (e.getButton() == MouseEvent.BUTTON1 & counter%2 == 0 & isMyFigure & notNullOrHQ) {
-							figure = (ImageIcon) btn.getIcon();// copying figure
+						if (canGo() & e.getButton() == MouseEvent.BUTTON1 & counter%2 == 0 & isMyFigure & notNullOrHQ) {
+							figure = btn.getIcon();// copying figure
 							btn.setIcon(null);// removing figure from the button
-							counter++;// counter of action							
+							counter++;						
 							if (shouldLimitMoves) {
 								class limit_movings {
 									public limit_movings() {
@@ -506,8 +517,8 @@ public class Field extends JFrame {
 														}
 														button[i][j].setBackground(Color.BLACK);
 														button[i][j].setOpaque(true);
-													} else if (figure == airplane1 | figure == airplane2) {// airplane. moves
-																						// *
+													}
+													if (figure == airplane1 | figure == airplane2) {// airplane. moves * *
 														for (int k = -3; k < 4; k++) {
 															if (j + k < 0) {
 															} else if (j + k > 17) {
@@ -542,7 +553,8 @@ public class Field extends JFrame {
 														}
 														button[i][j].setBackground(Color.BLACK);
 														button[i][j].setOpaque(true);
-													} else if (figure == tank1) {// tank. moves L
+													}
+													if (figure == tank1 | figure == tank2) {// tank. moves L
 														if (j - 2 > 17 | j - 2 < 0) {
 														} else {
 															button[i][j - 2].setBackground(spec);
@@ -605,7 +617,8 @@ public class Field extends JFrame {
 														}
 														button[i][j].setBackground(Color.BLACK);
 														button[i][j].setOpaque(true);
-													} else if (figure == soldier1 | figure == soldier2) {// soldier. moves *
+													} 
+													if (figure == soldier1 | figure == soldier2) {// soldier. moves *
 														for (int k = -1; k < 2; k++) {
 															if (j + k < 0)
 																k++;
@@ -645,26 +658,30 @@ public class Field extends JFrame {
 									}
 								}
 								new limit_movings();
-							}							
+							}
 						}
-						if (e.getButton() == MouseEvent.BUTTON3 & counter%2 == 1 & !isMyFigure) {
-							btn.setIcon(figure);// pasting text from the string					
-							counter++;// counter of action
+					
+						if (e.getButton() == MouseEvent.BUTTON1 & counter%2 == 1 & !isMyFigure) {
+							counter++;
+							//repaint squares
 							if (shouldLimitMoves) {
-								class paint_buttons {// inner class to repaint buttons back
-									public paint_buttons(JButton button[][]) {// squares painting
-										for (int i = 0; i < 18; i++)
-											for (int j = 0; j < 18; j++)
-												paintButtons(i, j);
-									}
-								}
-								new paint_buttons(button);
+								for (int i = 0; i < 18; i++)
+									for (int j = 0; j < 18; j++)
+										paintButtons(i, j);
+							}
+							btn.setIcon(figure);// past image
+							// change value on server to opposite								
+							if (firstOrSecond) {
+								WebConnector.sendInfoToServer("turn", "second");
+							} else {
+								WebConnector.sendInfoToServer("turn", "first");
 							}							
 						}
-						sendMapToServer();										
+						sendMapToServer();				
+						
 					}
 				};
-				button[i][j].addMouseListener(MoveFigure);
+				button[i][j].addMouseListener(moveFigure);
 				add(button[i][j]);
 			}
 		}
@@ -678,6 +695,7 @@ public class Field extends JFrame {
 		setIconImage(new ImageIcon(ICON.getDirection()).getImage());
 		setLocation(150, 10);
 		setSize(height, height);
+		setResizable(false);
 
 		// wall paper map
 		setContentPane(new JLabel(new ImageIcon(MAP.getDirection())));
@@ -750,24 +768,37 @@ public class Field extends JFrame {
 			if (getMapFromServer().equals("none")) {
 				firstOrSecond = true;
 				sendMapToServer();
-			} else 
-				firstOrSecond = false;	
+				WebConnector.sendInfoToServer("turn", "first");
+			} else {
+				firstOrSecond = false;
+				RestoreProgress.restore(button, soldier1, tank1, airplane1, rocket1, hq1,
+						soldier2, tank2, airplane2, rocket2, hq2, 
+						new StringBuilder(getMapFromServer()).reverse().toString());
+			}	
 			
 			constantUpdate = new Thread(new Runnable() {
 				@Override
 				public void run() {
 					while (isThreadOn) {
-						honorWinner(button[17][9], button[0][9]);// if somebody won	
-						if (currentMap != getMapFromServer()) {
+						if (!currentMap.equals(getMapFromServer())) {
 							currentMap = getMapFromServer();
-							RestoreProgress.restore(button, soldier1, tank1, airplane1, rocket1, hq1, soldier2, tank2,
-								airplane2, rocket2, hq2, currentMap);
+							if (firstOrSecond) {
+								RestoreProgress.restore(button, soldier1, tank1, airplane1, rocket1, hq1,
+										soldier2, tank2, airplane2, rocket2, hq2, currentMap);
+								//honorWinner(button[17][9], button[0][9]);// if somebody won	
+							} else {
+								RestoreProgress.restore(button, soldier1, tank1, airplane1, rocket1, hq1,
+										soldier2, tank2, airplane2, rocket2, hq2, 
+										new StringBuilder(currentMap).reverse().toString());
+								//honorWinner(button[0][8], button[17][8]);// if somebody won	
+							}							
 						}
 					}
 				}
-			});			
-			setButtonsWWW();			
-			// sets value on server to "none" and exits the game
+			});
+			
+			setButtonsWWW();
+			// exit the game
 			addWindowListener(new WindowAdapter() {
 				@Override
 				public void windowClosing(WindowEvent e) {
@@ -776,7 +807,7 @@ public class Field extends JFrame {
 				}
 			});
 			// after a player has set all figures as (s)he wishes, (s)he limits the moves to avoid cheating
-			limitMoves.addActionListener(LimitMoves -> shouldLimitMoves = true);
+			limitMoves.addActionListener(l -> shouldLimitMoves = true);
 		}
 		setVisible(true);// prevents long loading
 	}

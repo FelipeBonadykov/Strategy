@@ -5,14 +5,14 @@ import static Constants.Constants.PROGRESS;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import javax.swing.ImageIcon;
+import javax.swing.Icon;
 import javax.swing.JButton;
 
 public final class SaveProgress {
 
-	public static String getPosition(JButton button[][], ImageIcon soldier1, ImageIcon tank1, ImageIcon airplane1,
-			ImageIcon rocket1, ImageIcon hq1, ImageIcon soldier2, ImageIcon tank2, ImageIcon airplane2,
-			ImageIcon rocket2, ImageIcon hq2) {
+	public static String getPosition(JButton button[][], Icon soldier1, Icon tank1, Icon airplane1,
+			Icon rocket1, Icon hq1, Icon soldier2, Icon tank2, Icon airplane2,
+			Icon rocket2, Icon hq2) {
 		String txt = "";
 		for (byte i = 0; i < 18; i++)
 			for (byte j = 0; j < 18; j++) {
@@ -54,8 +54,8 @@ public final class SaveProgress {
 		return txt;
 	}
 
-	public SaveProgress(JButton button[][], ImageIcon soldier1, ImageIcon tank1, ImageIcon airplane1, ImageIcon rocket1,
-			ImageIcon hq1, ImageIcon soldier2, ImageIcon tank2, ImageIcon airplane2, ImageIcon rocket2, ImageIcon hq2) {
+	public SaveProgress(JButton button[][], Icon soldier1, Icon tank1, Icon airplane1, Icon rocket1,
+			Icon hq1, Icon soldier2, Icon tank2, Icon airplane2, Icon rocket2, Icon hq2) {
 		try (FileWriter progress = new FileWriter(PROGRESS.getDirection());) {
 			progress.write(getPosition(button, soldier1, tank1, airplane1, rocket1, hq1, soldier2, tank2, airplane2,
 					rocket2, hq2));

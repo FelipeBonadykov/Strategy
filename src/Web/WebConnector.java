@@ -16,7 +16,8 @@ import org.json.simple.parser.JSONParser;
 
 public class WebConnector {
 	
-	public static void sendInfoToServer(String key, String value) {
+	@SuppressWarnings("unchecked")
+	public static void sendInfoToServer(String key, Object value) {
 		// sends a json file to server (when the local player moved a figure)
 		try {
 			URL url = new URL(URL.getDirection());
@@ -62,9 +63,10 @@ public class WebConnector {
 	}
 
 	public static void resetServer() {
-		WebConnector.sendInfoToServer("map", "none");
-		WebConnector.sendInfoToServer("first", "none");
-		WebConnector.sendInfoToServer("second", "none");
+		sendInfoToServer("map", "none");
+		sendInfoToServer("first", "none");
+		sendInfoToServer("second", "none");
+		sendInfoToServer("turn", "none");
 	}
 	
 }

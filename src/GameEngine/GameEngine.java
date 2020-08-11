@@ -6,7 +6,7 @@ import java.io.File;
 
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
-import javax.swing.ImageIcon;
+import javax.swing.Icon;
 import javax.swing.JButton;
 
 public class GameEngine 
@@ -19,13 +19,13 @@ public class GameEngine
 	private byte[] Yto  = {6 , 6  , 1  , 2 , 1  , 6 , 5 , 6 , 5 , 5  , 7  , 6  , 7 , 3  , 2  , 6  , 6 , 7  , 8  ,  7 , 8  , 9  , 9  , 13 , 16 , 12, 14 , 17};
 	//this moves figures according to CT
 	private void move( JButton button[][],int count, 
-			ImageIcon soldier, ImageIcon tank, ImageIcon airplane, ImageIcon rocket, ImageIcon hq ) 
+			Icon soldier1, Icon tank1, Icon airplane1, Icon rocket1, Icon hq1 ) 
 	{
 		try{
-			if (button[Yfrom[count]][Xfrom[count]].getIcon()!=soldier & 
-				button[Yfrom[count]][Xfrom[count]].getIcon()!=tank & 
-				button[Yfrom[count]][Xfrom[count]].getIcon()!=airplane & 
-				button[Yfrom[count]][Xfrom[count]].getIcon()!=rocket & 
+			if (button[Yfrom[count]][Xfrom[count]].getIcon()!=soldier1 & 
+				button[Yfrom[count]][Xfrom[count]].getIcon()!=tank1 & 
+				button[Yfrom[count]][Xfrom[count]].getIcon()!=airplane1 & 
+				button[Yfrom[count]][Xfrom[count]].getIcon()!=rocket1 & 
 				button[Yfrom[count]][Xfrom[count]].getIcon()!=null) 
 			{
 			button[Yto[count]][Xto[count]].setIcon(button[Yfrom[count]][Xfrom[count]].getIcon());
@@ -35,7 +35,7 @@ public class GameEngine
 	}
 
 	public GameEngine(int count, JButton button[][], 
-			          ImageIcon soldier, ImageIcon tank, ImageIcon airplane, ImageIcon rocket, ImageIcon hq, 
+			          Icon soldier1, Icon tank1, Icon airplane1, Icon rocket1, Icon hq1, 
 			          boolean isUSSR) 
 	{  //we get buttons, conditions and counters from MainField
 		//This is a special case when there is a danger for HQ
@@ -43,14 +43,14 @@ public class GameEngine
 		{
 			for (byte i = 0; i < 3; i++) 
 			for (byte j = 7; j < 12; j++) 
-				if(button[i][j].getIcon()==soldier | 
-				   button[i][j].getIcon()==tank | 
-				   button[i][j].getIcon()==airplane | 
-				   button[i][j].getIcon()==rocket ) {
-					if (button[1][j].getIcon()!=soldier & 
-						button[1][j].getIcon()!=tank & 
-						button[1][j].getIcon()!=airplane & 
-						button[1][j].getIcon()!=rocket & 
+				if(button[i][j].getIcon()==soldier1 | 
+				   button[i][j].getIcon()==tank1 | 
+				   button[i][j].getIcon()==airplane1 | 
+				   button[i][j].getIcon()==rocket1 ) {
+					if (button[1][j].getIcon()!=soldier1 & 
+						button[1][j].getIcon()!=tank1 & 
+						button[1][j].getIcon()!=airplane1 & 
+						button[1][j].getIcon()!=rocket1 & 
 						button[1][j].getIcon()!=null)
 					{
 						button[i][j].setIcon(button[1][j].getIcon());
@@ -60,8 +60,8 @@ public class GameEngine
 					break;
 				} 
 		//if everything is okay, go according to coordinate table
-		if (cont == true) move (button, count, soldier, tank, airplane, rocket, hq);
-		else if (cont == true) move (button, ++count,  soldier, tank, airplane, rocket, hq);
+		if (cont == true) move (button, count, soldier1, tank1, airplane1, rocket1, hq1);
+		else if (cont == true) move (button, ++count,  soldier1, tank1, airplane1, rocket1, hq1);
 		//sound of war
 			Clip music = AudioSystem.getClip();
 			music.open(AudioSystem.getAudioInputStream(new File(WAR.getDirection())));
