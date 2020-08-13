@@ -200,6 +200,9 @@ public class Field extends JFrame {
 	}
 
 	private static boolean canGo() {
+		if(!shouldLimitMoves)
+			return true;
+		
 		String turnOf = (String) WebConnector.getInfoFromServer().get("turn");
 		// first player allowed to go
 		if (firstOrSecond & turnOf.equals("first")) 
@@ -662,23 +665,21 @@ public class Field extends JFrame {
 						}
 					
 						if (e.getButton() == MouseEvent.BUTTON1 & counter%2 == 1 & !isMyFigure) {
-							counter++;
-							//repaint squares
+							counter++;							
 							if (shouldLimitMoves) {
+								//repaint squares
 								for (int i = 0; i < 18; i++)
 									for (int j = 0; j < 18; j++)
 										paintButtons(i, j);
+								// change value of who's turn is on server to opposite								
+								if (firstOrSecond) 
+									WebConnector.sendInfoToServer("turn", "second");
+								 else 
+									WebConnector.sendInfoToServer("turn", "first");
 							}
-							btn.setIcon(figure);// past image
-							// change value on server to opposite								
-							if (firstOrSecond) {
-								WebConnector.sendInfoToServer("turn", "second");
-							} else {
-								WebConnector.sendInfoToServer("turn", "first");
-							}							
+							btn.setIcon(figure);// past image													
 						}
-						sendMapToServer();				
-						
+						sendMapToServer();
 					}
 				};
 				button[i][j].addMouseListener(moveFigure);
@@ -785,12 +786,12 @@ public class Field extends JFrame {
 							if (firstOrSecond) {
 								RestoreProgress.restore(button, soldier1, tank1, airplane1, rocket1, hq1,
 										soldier2, tank2, airplane2, rocket2, hq2, currentMap);
-								//honorWinner(button[17][9], button[0][9]);// if somebody won	
+								honorWinner(button[17][9], button[0][9]);// if somebody won	
 							} else {
 								RestoreProgress.restore(button, soldier1, tank1, airplane1, rocket1, hq1,
 										soldier2, tank2, airplane2, rocket2, hq2, 
 										new StringBuilder(currentMap).reverse().toString());
-								//honorWinner(button[0][8], button[17][8]);// if somebody won	
+								honorWinner(button[0][8], button[17][8]);// if somebody won	
 							}							
 						}
 					}
