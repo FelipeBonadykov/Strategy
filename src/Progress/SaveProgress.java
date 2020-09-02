@@ -62,4 +62,5 @@ public final class SaveProgress {
 		} catch (IOException e) {
 		}
 	}
+
 }

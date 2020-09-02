@@ -4,8 +4,8 @@ import static Constants.Constants.PROGRESS;
 
 import java.io.File;
 
-public final class DoNotSaveProgress 
-{
+public final class DoNotSaveProgress {
+
 	public DoNotSaveProgress() {
 		try {
 			File progress = new File(PROGRESS.getDirection());
@@ -13,4 +13,5 @@ public final class DoNotSaveProgress
 		} catch(Exception e) {}
 		System.exit(0);
 	}
+	
 }

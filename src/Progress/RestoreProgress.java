@@ -77,4 +77,5 @@ public final class RestoreProgress {
 			// online game
 		}
 	}
+
 }

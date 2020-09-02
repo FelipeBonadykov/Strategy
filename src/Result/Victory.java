@@ -12,6 +12,7 @@ import javax.swing.JLabel;
 
 @SuppressWarnings("serial")
 public final class Victory extends JFrame {
+	
 	public Victory(String title, String country) {
 		// options of frame
 		setTitle(title);
@@ -30,4 +31,5 @@ public final class Victory extends JFrame {
 	    } catch (Exception e) {}
 	    setVisible(true);//prevents loading
 	 }
+
 }

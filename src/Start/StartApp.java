@@ -121,4 +121,5 @@ public final class StartApp extends JFrame {
 
 		setVisible(true);
 	}
+
 }

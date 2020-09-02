@@ -16,6 +16,7 @@ import Web.WebConnector;
 
 @SuppressWarnings("serial")
 final class Instructions extends JFrame {
+	
 	private final Font FONT = new Font("Arial", Font.BOLD, 13);
 	private final String AGREEMENT_AND_INSTRUCTIONS =
 	"<html><font face=Monospaced size=6 color=red> PLEASE PAY ATTENTION</font><br>"//beginning
@@ -84,4 +85,5 @@ final class Instructions extends JFrame {
 		
 		setVisible(true);//prevents loading
 	}
+
 }
